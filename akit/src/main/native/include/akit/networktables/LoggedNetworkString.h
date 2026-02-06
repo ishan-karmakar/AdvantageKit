@@ -6,7 +6,7 @@
 // at the root directory of this project.
 
 #pragma once
-#include <networktables/BooleanTopic.h>
+#include <networktables/StringTopic.h>
 #include <networktables/NetworkTableInstance.h>
 #include "akit/networktables/LoggedNetworkInput.h"
 #include "akit/inputs/LoggableInputs.h"
@@ -16,31 +16,31 @@ namespace akit {
 
 namespace nt {
 
-class LoggedNetworkBoolean: public LoggedNetworkInput,
+class LoggedNetworkString: public LoggedNetworkInput,
 		public inputs::LoggableInputs {
 public:
-	LoggedNetworkBoolean(std::string key) : key { key }, entry {
-			::nt::NetworkTableInstance::GetDefault().GetBooleanTopic(key).GetEntry(
-					false) }, value { defaultValue } {
+	LoggedNetworkString(std::string key) : key { key }, entry {
+			::nt::NetworkTableInstance::GetDefault().GetStringTopic(key).GetEntry(
+					"") } {
 		// Logger.registerDashboardInput(this)
 	}
 
-	LoggedNetworkBoolean(std::string key, bool defaultValue) : LoggedNetworkBoolean {
+	LoggedNetworkString(std::string key, std::string defaultValue) : LoggedNetworkString {
 			key } {
 		setDefault(defaultValue);
 		value = defaultValue;
 	}
 
-	void setDefault(bool defaultValue) {
+	void setDefault(std::string defaultValue) {
 		this->defaultValue = defaultValue;
 		entry.Set(entry.Get(defaultValue));
 	}
 
-	void set(bool value) {
+	void set(std::string value) {
 		entry.Set(value);
 	}
 
-	bool get() {
+	std::string get() {
 		return value;
 	}
 
@@ -53,19 +53,17 @@ public:
 	}
 
 	void periodic() override {
-		/*
-		 if (!Logger.hasReplaySource()) {
-		 value = entry.get(defaultValue);
-		 }
-		 Logger.processInputs(prefix, inputs);
-		 */
+		// if (!Logger.hasReplaySource()) {
+		//   value = entry.get(defaultValue);
+		// }
+		// Logger.processInputs(prefix, inputs);
 	}
 
 private:
 	std::string key;
-	::nt::BooleanEntry entry;
-	bool defaultValue;
-	bool value;
+	::nt::StringEntry entry;
+	std::string defaultValue;
+	std::string value;
 };
 
 }
