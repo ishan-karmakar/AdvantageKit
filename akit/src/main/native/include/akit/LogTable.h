@@ -8,13 +8,18 @@
 #pragma once
 #include <string>
 #include <unordered_map>
-#include <wpi/array.h>
 #include <any>
 #include <vector>
 #include <memory>
+#include <unordered_set>
 
+#include <wpi/array.h>
+#include <wpi/struct/Struct.h>
 #include <magic_enum/magic_enum.hpp>
 #include <frc/Errors.h>
+#include <frc/util/Color.h>
+#include <units/base.h>
+#include <units/angle.h>
 
 #include "akit/inputs/LoggableInputs.h"
 
@@ -108,114 +113,36 @@ public:
 			return getStringArray( { });
 		}
 
-		inline std::vector<std::byte> getRaw(
-				std::vector<std::byte> defaultValue) const {
-			return type == LoggableType::Raw ?
-					std::any_cast < std::vector < std::byte >> (value) :
-					defaultValue;
-		}
+		std::vector<std::byte> getRaw(
+				std::vector<std::byte> defaultValue) const;
 
-		inline bool getBoolean(bool defaultValue) const {
-			return type == LoggableType::Boolean ?
-					std::any_cast<bool>(value) : defaultValue;
-		}
+		bool getBoolean(bool defaultValue) const;
 
-		inline long getInteger(long defaultValue) const {
-			return type == LoggableType::Integer ?
-					std::any_cast<long>(value) : defaultValue;
-		}
+		long getInteger(long defaultValue) const;
 
-		inline float getFloat(float defaultValue) const {
-			return type == LoggableType::Float ?
-					std::any_cast<float>(value) : defaultValue;
-		}
+		float getFloat(float defaultValue) const;
 
-		inline double getDouble(double defaultValue) const {
-			return type == LoggableType::Double ?
-					std::any_cast<double>(value) : defaultValue;
-		}
+		double getDouble(double defaultValue) const;
 
-		inline std::string getString(std::string defaultValue) const {
-			return type == LoggableType::String ?
-					std::any_cast < std::string > (value) : defaultValue;
-		}
+		std::string getString(std::string defaultValue) const;
 
-		inline std::vector<bool> getBooleanArray(
-				std::vector<bool> defaultValue) const {
-			return type == LoggableType::BooleanArray ?
-					std::any_cast<std::vector<bool>>(value) : defaultValue;
-		}
+		std::vector<bool> getBooleanArray(std::vector<bool> defaultValue) const;
 
-		inline std::vector<long> getIntegerArray(
-				std::vector<long> defaultValue) const {
-			return type == LoggableType::IntegerArray ?
-					std::any_cast<std::vector<long>>(value) : defaultValue;
-		}
+		std::vector<long> getIntegerArray(std::vector<long> defaultValue) const;
 
-		inline std::vector<float> getFloatArray(
-				std::vector<float> defaultValue) const {
-			return type == LoggableType::FloatArray ?
-					std::any_cast<std::vector<float>>(value) : defaultValue;
-		}
+		std::vector<float> getFloatArray(std::vector<float> defaultValue) const;
 
-		inline std::vector<double> getDoubleArray(
-				std::vector<double> defaultValue) const {
-			return type == LoggableType::DoubleArray ?
-					std::any_cast<std::vector<double>>(value) : defaultValue;
-		}
+		std::vector<double> getDoubleArray(
+				std::vector<double> defaultValue) const;
 
-		inline std::vector<std::string> getStringArray(
-				std::vector<std::string> defaultValue) const {
-			return type == LoggableType::StringArray ?
-					std::any_cast < std::vector < std::string >> (value) :
-					defaultValue;
-		}
+		std::vector<std::string> getStringArray(
+				std::vector<std::string> defaultValue) const;
 
-		inline std::string getWPILOGType() const {
-			if (customTypeStr.empty())
-				return std::string { WPILOG_TYPES[static_cast<int>(type)] };
-			return customTypeStr;
-		}
+		std::string getWPILOGType() const;
 
-		inline std::string getNT4Type() const {
-			if (customTypeStr.empty())
-				return std::string { NT4_TYPES[static_cast<int>(type)] };
-			return customTypeStr;
-		}
+		std::string getNT4Type() const;
 
-		bool operator==(const LogValue &other) const {
-			if (other.type == type && customTypeStr == other.customTypeStr
-					&& unitStr == other.unitStr
-					&& (customTypeStr.empty()
-							|| other.customTypeStr == customTypeStr)
-					&& (unitStr.empty() || other.unitStr == unitStr)) {
-				switch (type) {
-				case LoggableType::Raw:
-					return getRaw() == other.getRaw();
-				case LoggableType::Boolean:
-					return getBoolean() == other.getBoolean();
-				case LoggableType::Integer:
-					return getInteger() == other.getInteger();
-				case LoggableType::Float:
-					return getFloat() == other.getFloat();
-				case LoggableType::Double:
-					return getDouble() == other.getDouble();
-				case LoggableType::String:
-					return getString() == other.getString();
-				case LoggableType::BooleanArray:
-					return getBooleanArray() == other.getBooleanArray();
-				case LoggableType::IntegerArray:
-					return getIntegerArray() == other.getIntegerArray();
-				case LoggableType::FloatArray:
-					return getFloatArray() == other.getFloatArray();
-				case LoggableType::DoubleArray:
-					return getDoubleArray() == other.getDoubleArray();
-				case LoggableType::StringArray:
-					return getStringArray() == other.getStringArray();
-				}
-			}
-			return false;
-		}
+		bool operator==(const LogValue &other) const;
 
 	private:
 		std::any value;
@@ -224,34 +151,118 @@ public:
 	LogTable(long timestamp) : LogTable { "/", 0, std::make_shared<long>(0), { } } {
 	}
 
-	void setTimestamp(long timestamp) {
+	inline void setTimestamp(long timestamp) {
 		*this->timestamp = timestamp;
 	}
 
-	long getTimestamp() {
+	inline long getTimestamp() {
 		return *this->timestamp;
 	}
 
-	LogTable getSubtable(std::string tableName) {
+	inline LogTable getSubtable(std::string tableName) {
 		return LogTable { prefix + tableName + "/", *this };
 	}
 
-	std::unordered_map<std::string, LogValue> getAll(bool subtableOnly) {
-		if (subtableOnly) {
-			std::unordered_map<std::string, LogValue> result;
-			for (const auto &field : data) {
-				if (field.first.starts_with(prefix))
-					result.emplace(field.first.substr(prefix.size()),
-							field.second);
-			}
-			return result;
-		} else
-			return data;
+	std::unordered_map<std::string, LogValue> getAll(bool subtableOnly);
+
+	void put(std::string key, LogValue value);
+
+	inline void put(std::string key, std::vector<std::byte> value) {
+		put(key, LogValue { value, "" });
 	}
 
-	void put(std::string key, LogValue value) {
-		if (writeAllowed(key, value.type, value.customTypeStr))
-			data.emplace(prefix + key, value);
+	void put(std::string key, std::vector<std::vector<std::byte>> value);
+
+	inline void put(std::string key, bool value) {
+		put(key, LogValue { value, "" });
+	}
+
+	inline void put(std::string key, std::vector<bool> value) {
+		put(key, LogValue { value, "" });
+	}
+
+	void put(std::string key, std::vector<std::vector<bool>> value);
+
+	inline void put(std::string key, long value) {
+		put(key, LogValue { value, "" });
+	}
+
+	inline void put(std::string key, std::vector<long> value) {
+		put(key, LogValue(value, ""));
+	}
+
+	void put(std::string key, std::vector<std::vector<long>> value);
+
+	inline void put(std::string key, float value) {
+		put(key, LogValue { value, "" });
+	}
+
+	inline void put(std::string key, float value, std::string unitStr) {
+		put(key, LogValue { value, "", unitStr });
+	}
+
+	inline void put(std::string key, std::vector<float> value) {
+		put(key, LogValue { value, "" });
+	}
+
+	void put(std::string key, std::vector<std::vector<float>> value);
+
+	inline void put(std::string key, double value) {
+		put(key, LogValue { value, "" });
+	}
+
+	inline void put(std::string key, double value, std::string unitStr) {
+		put(key, LogValue { value, "", unitStr });
+	}
+
+	inline void put(std::string key, std::vector<double> value) {
+		put(key, LogValue { value, "" });
+	}
+
+	void put(std::string key, std::vector<std::vector<double>> value);
+
+	inline void put(std::string key, std::string value) {
+		put(key, LogValue { value, "" });
+	}
+
+	inline void put(std::string key, std::vector<std::string> value) {
+		put(key, LogValue { value, "" });
+	}
+
+	void put(std::string key, std::vector<std::vector<std::string>> value);
+
+	template <typename T>
+	requires std::is_enum_v<T>
+	inline void put(std::string key, T value) {
+		put(key, LogValue { magic_enum::enum_name(value), "" });
+	}
+
+	template <typename T>
+	requires std::is_enum_v<T>
+	void put(std::string key, std::vector<T> value) {
+		std::vector < std::string > stringValues;
+		for (auto val : value)
+			stringValues.emplace_back(magic_enum::enum_name(val));
+		put(key, LogValue { stringValues, "" });
+	}
+
+	template <typename T>
+	requires std::is_enum_v<T>
+	void put(std::string key, std::vector<std::vector<T>> value) {
+		put(key + "/length", static_cast<long>(value.size()));
+		for (int i = 0; i < value.size(); i++)
+			put(key + "/" + std::to_string(i), value[i]);
+	}
+
+	template <typename U>
+	requires units::traits::is_unit_t_v<U>
+	inline void put(std::string key, U value) {
+		auto converted = value.template convert<U::unit_type::base_unit_type>();
+		put(key, LogValue { converted.value(), "", converted.abbreviation() });
+	}
+
+	inline void put(std::string key, frc::Color value) {
+		put(key, value.HexString());
 	}
 
 	void put(std::string key, inputs::LoggableInputs &value) {
@@ -262,18 +273,6 @@ public:
 			return;
 		}
 		value.toLog(getSubtable(key));
-	}
-
-	void put(std::string key, bool value) {
-		put(key, LogValue { value, "" });
-	}
-
-	void put(std::string key, double value) {
-		put(key, LogValue(value, ""));
-	}
-
-	void put(std::string key, std::string value) {
-		put(key, LogValue { value, "" });
 	}
 
 	LogValue get(std::string key) {
@@ -301,6 +300,54 @@ public:
 		return get(key).getString(defaultValue);
 	}
 
+	template <typename T>
+	requires wpi::StructSerializable<T> && (!std::is_arithmetic_v<T>)
+	void addStructSchema() {
+		std::string typeString = wpi::GetStructTypeString<T>();
+		std::string key = "/.schema/" + typeString;
+
+		if (data.contains(key))
+		return;
+		std::unordered_set < std::string > seen;
+		seen.insert(typeString);
+
+		data.emplace(key, LogValue {wpi::GetStructSchemaBytes<T>(),
+					"structschema"});
+		wpi::ForEachStructSchema([&](std::string_view typeString, std::string_view schema) {addStructSchema(std::string {typeString}, std::string {schema}, seen);});
+	}
+
+	template <typename T>
+	requires wpi::StructSerializable<T> && (!std::is_arithmetic_v<T>)
+	void put(std::string key, T value) {
+		addStructSchema<T>();
+		std::array<std::byte, wpi::GetStructSize<T>()> buffer;
+		wpi::PackStruct < T > (buffer);
+		put(key, LogValue {buffer, wpi::GetStructTypeString<T>()});
+	}
+
+	template <typename T>
+	requires wpi::StructSerializable<T> && (!std::is_arithmetic_v<T>)
+	void put(std::string key, std::initializer_list<T> values) {
+		addStructSchema<T>();
+		std::vector < std::byte
+		> buffer {values.size() * wpi::GetStructSize<T>()};
+		int i = 0;
+		for (const T &value : values)
+		wpi::PackStruct(
+				std::span < std::byte
+				> (buffer).subspan(i++ * wpi::GetStructSize<T>()),
+				value);
+		put(key, LogValue {buffer, wpi::GetStructTypeString<T>() + "[]"});
+	}
+
+	template <typename T>
+	requires wpi::StructSerializable<T> && (!std::is_arithmetic_v<T>)
+	void put(std::string key, std::vector<std::vector<T>> value) {
+		put(key + "/length", value.size());
+		for (int i = 0; i < value.size(); i++)
+		put(key + "/" + std::to_string(i), value[i]);
+	}
+
 private:
 	LogTable(std::string prefix, int depth, std::shared_ptr<long> timestamp,
 			std::unordered_map<std::string, LogValue> data) : prefix { prefix }, depth {
@@ -312,26 +359,10 @@ private:
 	}
 
 	bool writeAllowed(std::string key, LoggableType type,
-			std::string customTypeStr) {
-		auto currentValue = data.find(prefix + key);
-		if (currentValue == data.end())
-			return true;
-		if (currentValue->second.type != type) {
-			FRC_ReportWarning(
-					"[AdvantageKit] Failed to write to field \"{}{}\" - attempted to write {} value but expected {}",
-					prefix, key, magic_enum::enum_name(type),
-					magic_enum::enum_name(currentValue->second.type));
-			return false;
-		}
-		if (currentValue->second.customTypeStr != customTypeStr) {
-			FRC_ReportWarning(
-					"[AdvantageKit] Failed to write to field \"{}{}\" - attempted to write {} value but expected {}",
-					prefix, key, customTypeStr,
-					currentValue->second.customTypeStr);
-			return false;
-		}
-		return true;
-	}
+			std::string customTypeStr);
+
+	void addStructSchema(std::string typeString, std::string schema,
+			std::unordered_set<std::string> &seen);
 
 	std::string prefix;
 	int depth;

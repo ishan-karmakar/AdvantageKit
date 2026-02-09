@@ -6,7 +6,6 @@
 // at the root directory of this project.
 
 #pragma once
-#include <array>
 #include <hal/PowerDistribution.h>
 #include "conduit/wpilibio.h"
 #include "conduit_schema_generated.h"
@@ -16,45 +15,51 @@ namespace akit {
 namespace conduit {
 
 class ConduitApi {
+	static constexpr int NUM_JOYSTICKS = 6;
+	static constexpr int NUM_JOYSTICK_AXES = 12;
+	static constexpr int NUM_JOYSTICK_POVS = 12;
+
 public:
 	static ConduitApi& getInstance();
 	void captureData() {
 		wpilibio::capture_data();
 	}
 
-	int64_t getTimestamp() {
+	long getTimestamp() {
 		return inputs.timestamp();
 	}
 
-	int32_t getAllianceStation() {
+	long getAllianceStation() {
 		return inputs.ds().alliance_station();
 	}
 
 	std::string getEventName() {
-		return std::string { inputs.ds().event_name()->data() };
+		return std::string {
+				reinterpret_cast<const char*>(inputs.ds().event_name()->data()) };
 	}
 
 	std::string getGameSpecificMessage() {
-		return std::string { inputs.ds().game_specific_message()->data() };
+		return std::string {
+				reinterpret_cast<const char*>(inputs.ds().game_specific_message()->data()) };
 	}
 
-	uint16_t getGameSpecificMessageSize() {
+	long getGameSpecificMessageSize() {
 		return inputs.ds().game_specific_message_size();
 	}
 
-	uint16_t getMatchNumber() {
+	long getMatchNumber() {
 		return inputs.ds().match_number();
 	}
 
-	uint8_t getReplayNumber() {
+	long getReplayNumber() {
 		return inputs.ds().replay_number();
 	}
 
-	int32_t getMatchType() {
+	long getMatchType() {
 		return inputs.ds().match_type();
 	}
 
-	int32_t getControlWord() {
+	long getControlWord() {
 		return inputs.ds().control_word();
 	}
 
@@ -63,46 +68,53 @@ public:
 	}
 
 	std::string getJoystickName(int id) {
-		return std::string { inputs.ds().joysticks()->Get(id)->name() };
+		return std::string {
+				reinterpret_cast<const char*>(inputs.ds().joysticks()->Get(id)->name()) };
 	}
 
-	uint8_t getJoystickType(int id) {
+	long getJoystickType(int id) {
 		return inputs.ds().joysticks()->Get(id)->type();
 	}
 
-	uint8_t getButtonCount(int id) {
+	long getButtonCount(int id) {
 		return inputs.ds().joysticks()->Get(id)->button_count();
 	}
 
-	int32_t getButtonValues(int id) {
+	long getButtonValues(int id) {
 		return inputs.ds().joysticks()->Get(id)->buttons();
 	}
 
-	int16_t getAxisCount(int id) {
+	long getAxisCount(int id) {
 		return inputs.ds().joysticks()->Get(id)->axis_count();
 	}
 
-	std::array<uint8_t, NUM_JOYSTICK_AXES> getAxisTypes(int id) {
-		auto types = inputs.ds().joysticks()->Get(id)->axis_types();
-		return {types->begin(), types->end()};
+	std::array<long, NUM_JOYSTICK_AXES> getAxisTypes(int id) {
+		std::array<long, NUM_JOYSTICK_AXES> types;
+		auto rawTypes = inputs.ds().joysticks()->Get(id)->axis_types();
+		std::copy_n(rawTypes->begin(), NUM_JOYSTICK_AXES, types.begin());
+		return types;
 	}
 
 	std::array<float, NUM_JOYSTICK_AXES> getAxisValues(int id) {
-		auto values = inputs.ds().joysticks()->Get(id)->axis_values();
-		return (values->begin(), values->end());
+		std::array<float, NUM_JOYSTICK_AXES> values;
+		auto rawValues = inputs.ds().joysticks()->Get(id)->axis_values();
+		std::copy_n(rawValues->begin(), NUM_JOYSTICK_AXES, values.begin());
+		return values;
 	}
 
-	int16_t getPovCount(int id) {
+	long getPovCount(int id) {
 		return inputs.ds().joysticks()->Get(id)->pov_count();
 	}
 
-	std::array<int16_t, NUM_JOYSTICK_POVS> getPovValues(int id) {
-		auto values = inputs.ds().joysticks()->Get(id)->pov_values();
-		return {values->begin(), values->end()};
+	std::array<long, NUM_JOYSTICK_POVS> getPovValues(int id) {
+		std::array<long, NUM_JOYSTICK_POVS> values;
+		auto rawValues = inputs.ds().joysticks()->Get(id)->pov_values();
+		std::copy_n(rawValues->begin(), NUM_JOYSTICK_POVS, values.begin());
+		return values;
 	}
 
 	bool isXbox(int id) {
-		return inputs.ds().joysticks()->Get(id).is_xbox();
+		return inputs.ds().joysticks()->Get(id)->is_xbox();
 	}
 
 	double getPDPTemperature() {
@@ -138,14 +150,16 @@ public:
 	}
 
 	std::string getSerialNumber() {
-		return std::string { inputs.sys().serial_number().data() };
+		return std::string {
+				reinterpret_cast<const char*>(inputs.sys().serial_number()->data()) };
 	}
 
 	std::string getComments() {
-		return std::string { inputs.sys().comments().data() };
+		return std::string {
+				reinterpret_cast<const char*>(inputs.sys().comments()->data()) };
 	}
 
-	int32_t getTeamNumber() {
+	long getTeamNumber() {
 		return inputs.sys().team_number();
 	}
 
@@ -161,7 +175,7 @@ public:
 		return inputs.sys().browned_out() != 0;
 	}
 
-	int32_t getCommsDisableCount() {
+	long getCommsDisableCount() {
 		return inputs.sys().comms_disable_count();
 	}
 
@@ -186,14 +200,14 @@ public:
 	}
 
 	double getUserCurrent3v3() {
-		return inputs.sys().user_current_3v();
+		return inputs.sys().user_current_3v3();
 	}
 
 	bool getUserActive3v3() {
 		return inputs.sys().user_active_3v3() != 0;
 	}
 
-	int32_t getUserCurrentFaults3v3() {
+	long getUserCurrentFaults3v3() {
 		return inputs.sys().user_current_faults_3v3();
 	}
 
@@ -209,7 +223,7 @@ public:
 		return inputs.sys().user_active_5v() != 0;
 	}
 
-	int32_t getUserCurrentFaults5v() {
+	long getUserCurrentFaults5v() {
 		return inputs.sys().user_current_faults_5v();
 	}
 
@@ -225,7 +239,7 @@ public:
 		return inputs.sys().user_active_6v() != 0;
 	}
 
-	int32_t getUserCurrentFaults6v() {
+	long getUserCurrentFaults6v() {
 		return inputs.sys().user_current_faults_6v();
 	}
 
@@ -241,23 +255,23 @@ public:
 		return inputs.sys().can_status().percent_bus_utilization();
 	}
 
-	uint32_t getBusOffCount() {
+	long getBusOffCount() {
 		return inputs.sys().can_status().bus_off_count();
 	}
 
-	uint32_t getTxFullCount() {
+	long getTxFullCount() {
 		return inputs.sys().can_status().tx_full_count();
 	}
 
-	uint32_t getReceiveErrorCount() {
+	long getReceiveErrorCount() {
 		return inputs.sys().can_status().receive_error_count();
 	}
 
-	uint32_t getTransmitErrorCount() {
+	long getTransmitErrorCount() {
 		return inputs.sys().can_status().transmit_error_count();
 	}
 
-	uint64_t getEpochTime() {
+	long getEpochTime() {
 		return inputs.sys().epoch_time();
 	}
 
@@ -266,27 +280,27 @@ public:
 		// FIXME: Unimplemented
 	}
 
-	int32_t getPDPChannelCount() {
+	long getPDPChannelCount() {
 		return inputs.pdp().channel_count();
 	}
 
-	int32_t getPDPHandle() {
+	long getPDPHandle() {
 		return inputs.pdp().handle();
 	}
 
-	int32_t getPDPType() {
+	long getPDPType() {
 		return inputs.pdp().type();
 	}
 
-	int32_t getPDPModuleId() {
+	long getPDPModuleId() {
 		return inputs.pdp().module_id();
 	}
 
-	uint32_t getPDPFaults() {
+	long getPDPFaults() {
 		return inputs.pdp().faults();
 	}
 
-	uint32_t getPDPStickyFaults() {
+	long getPDPStickyFaults() {
 		return inputs.pdp().sticky_faults();
 	}
 
@@ -294,16 +308,7 @@ private:
 	ConduitApi() : inputs { getCoreInputs() } {
 	}
 
-	static org::littletonrobotics::conduit::schema::CoreInputs& getCoreInputs() {
-		wpilibio::start();
-		if (wpilibio::shared_buf == 0)
-			wpilibio::make_buffer();
-		return *wpilibio::shared_buf;
-	}
-
-	static constexpr int NUM_JOYSTICKS = 6;
-	static constexpr int NUM_JOYSTICK_AXES = 12;
-	static constexpr int NUM_JOYSTICK_POVS = 12;
+	static org::littletonrobotics::conduit::schema::CoreInputs& getCoreInputs();
 
 	org::littletonrobotics::conduit::schema::CoreInputs &inputs;
 };
