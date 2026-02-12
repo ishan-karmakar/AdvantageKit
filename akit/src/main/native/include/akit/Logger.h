@@ -6,18 +6,19 @@
 // at the root directory of this project.
 
 #pragma once
-#include <string_view>
 #include "akit/LogTable.h"
 
 namespace akit {
 
-class LogDataReceiver {
-public:
-	static constexpr std::string_view TIMESTAMP_KEY = "/Timestamp";
+class Logger {
+private:
+	static constexpr int RECEIVER_QUEUE_CAPACITY = 500;
 
-	virtual void start() = 0;
-	virtual void end() = 0;
-	virtual void putTable(LogTable &table) = 0;
+	static bool running;
+	static long cycleCount;
+	static LogTable entry;
+	static LogTable outputTable;
+	static std::unordered_map<std::string, std::string> metadata;
 };
 
 }
