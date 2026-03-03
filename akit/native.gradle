@@ -237,6 +237,31 @@ model {
                 cppCompiler.args << '-DWPILIB_EXPORTS'
             }
         }
+
+        testRobot(NativeExecutableSpec) {
+            sources {
+                cpp {
+                    source {
+                        srcDirs 'test-robot/cpp'
+                        include '**/*.cpp'
+                    }
+                }
+            }
+
+            // Enable run tasks for this component
+            wpi.cpp.enableExternalTasks(it)
+
+            // Enable simulation for this component
+            wpi.sim.enable(it)
+
+
+            nativeUtils.useRequiredLibrary(it, "wpilib_shared")
+
+            binaries.all {
+                lib project: ':', library: 'akit', linkage: 'static'
+                lib project: ':', library: 'wpilibio', linkage: 'static'
+            }
+        }
     }
     testSuites {
         wpilibioTest {

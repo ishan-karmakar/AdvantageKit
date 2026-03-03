@@ -104,20 +104,20 @@ task cleanReleaseRepo(type: Delete) {
 
 tasks.matching {it != cleanReleaseRepo}.all {it.dependsOn cleanReleaseRepo}
 
-task vendordep(type: Copy) {
-    inputs.property("publishingVersion", pubVersion) // Force task to invalidate if the property changes
+// task vendordep(type: Copy) {
+//     inputs.property("publishingVersion", pubVersion) // Force task to invalidate if the property changes
 
-    from "$rootDir/AdvantageKit.json"
-    into "$buildDir/vendordep"
-    expand ("version": pubVersion,
-            "groupId": artifactGroupId,
-            "javaArtifactId": javaArtifactId,
-            "jniArtifactId": wpilibioArtifactId,
-            "akitCppArtifactId": akitCppArtifactId,
-            "frcYear": frcYear)
-}
+//     from "$rootDir/AdvantageKit.json"
+//     into "$buildDir/vendordep"
+//     expand ("version": pubVersion,
+//             "groupId": artifactGroupId,
+//             "javaArtifactId": javaArtifactId,
+//             "jniArtifactId": wpilibioArtifactId,
+//             "akitCppArtifactId": akitCppArtifactId,
+//             "frcYear": frcYear)
+// }
 
-build.dependsOn vendordep
+// build.dependsOn vendordep
 
 publish.dependsOn build
 

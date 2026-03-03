@@ -19,3 +19,12 @@ tasks.register("spotlessApply") {
     dependsOn(gradle.includedBuild("akit").task(":spotlessApply"))
     dependsOn(gradle.includedBuild("template_projects").task(":spotlessApply"))
 }
+
+tasks.register<Copy>("simulateExternalNativeDebug") {
+    dependsOn(gradle.includedBuild("akit").task(":simulateExternalNativeDebug"))
+    from(gradle.includedBuild("akit").projectDir.resolve("build")) {
+        include("install/**")
+        include("sim/**")
+    }
+    into(layout.buildDirectory)
+}
